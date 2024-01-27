@@ -12,6 +12,7 @@ let images = [];
 let title = "";
 let downloadNow = false;
 let superLazy = false;
+let slash = "\\";
 
 getData(0);
 
@@ -22,7 +23,7 @@ async function getData(page) {
             let _originLink = readline.question("E-Hentai Link: ");
             downloadNow = readline.keyInYN("Do you want to download while getting the link?");
             superLazy = readline.keyInYN("Do you want to lazy download?");
-            if(!_baseDir.endsWith("\\")) _baseDir += "\\";
+            if(!_baseDir.endsWith(slash)) _baseDir += slash;
             baseDir = _baseDir;
             link = _originLink;
         }
@@ -39,7 +40,7 @@ async function getData(page) {
         console.log(`Getting links from ${_l}`);
         let data = await axios.get(_l);
         let document = new jsdom.JSDOM(data.data).window.document;
-        title = document.title.replace(/\\|\/|\:|\*|\?|\"|\<|\>|\|/g, "");
+        title = document.title.replace(/\\|\/|\:|\*|\?|\"|\<|\>|\|/g, "").substring(0, 200);
         let as = document.querySelectorAll(".gdtm a");
         if(!page) {
             let ts = document.querySelectorAll("table.ptb a");
@@ -72,8 +73,8 @@ async function getData(page) {
 }
 
 async function getImage() {
-    if (!fs.existsSync(baseDir + `${title ? title + "\\" : ""}`)){
-        fs.mkdirSync(baseDir + `${title ? title + "\\" : ""}`, { recursive: true });
+    if (!fs.existsSync(baseDir + `${title ? title + slash : ""}`)){
+        fs.mkdirSync(baseDir + `${title ? title + slash : ""}`, { recursive: true });
     }
     for (let index = 0; index < pages.length; index++) {
         let retry = true;
@@ -87,10 +88,10 @@ async function getImage() {
                     console.log(`${index + 1}: ${src}`);
                     if(downloadNow) {
                         if(superLazy) {
-                            await downloadImageLazy(src, baseDir + `${title ? title + "\\" : ""}${(index + 1).toString().padStart(pages.length.toString().length, '0')}.${src.split(".").pop(-1)}`);
+                            await downloadImageLazy(src, baseDir + `${title ? title + slash : ""}${(index + 1).toString().padStart(pages.length.toString().length, '0')}.${src.split(".").pop(-1)}`);
                         }
                         else {
-                            downloadImage(src, baseDir + `${title ? title + "\\" : ""}${(index + 1).toString().padStart(pages.length.toString().length, '0')}.${src.split(".").pop(-1)}`);
+                            downloadImage(src, baseDir + `${title ? title + slash : ""}${(index + 1).toString().padStart(pages.length.toString().length, '0')}.${src.split(".").pop(-1)}`);
                         }
                     }
                     else {
@@ -104,12 +105,12 @@ async function getImage() {
                 if(index == pages.length - 1) {
                     if(superLazy) {
                         for(let image of images) {
-                            await downloadImageLazy(image.src, baseDir + `${title ? title + "\\" : ""}${image.index.toString().padStart(pages.length.toString().length, '0')}.${image.src.split(".").pop(-1)}`);
+                            await downloadImageLazy(image.src, baseDir + `${title ? title + slash : ""}${image.index.toString().padStart(pages.length.toString().length, '0')}.${image.src.split(".").pop(-1)}`);
                         }
                     }
                     else {
                         images.forEach(image => {
-                            downloadImage(image.src, baseDir + `${title ? title + "\\" : ""}${image.index.toString().padStart(pages.length.toString().length, '0')}.${image.src.split(".").pop(-1)}`);
+                            downloadImage(image.src, baseDir + `${title ? title + slash : ""}${image.index.toString().padStart(pages.length.toString().length, '0')}.${image.src.split(".").pop(-1)}`);
                         });
                     }
                 }
