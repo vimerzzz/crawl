@@ -40,7 +40,7 @@ async function getData(page) {
         console.log(`Getting links from ${_l}`);
         let data = await axios.get(_l);
         let document = new jsdom.JSDOM(data.data).window.document;
-        title = document.title.replace(/\\|\/|\:|\*|\?|\"|\<|\>|\|/g, "").substring(0, 200);
+        title = document.title.replace(/\\|\/|\:|\*|\?|\"|\<|\>|\||\~/g, "").substring(0, 200);
         let as = document.querySelectorAll(".gdtm a");
         if(!page) {
             let ts = document.querySelectorAll("table.ptb a");
