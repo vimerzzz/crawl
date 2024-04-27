@@ -23,6 +23,8 @@ let downloadNow = false;
 let superLazy = false;
 let fullImage = false;
 let slash = "\\";
+let startAt = 1;
+let endAt = 2500;
 
 getData(0);
 
@@ -87,7 +89,11 @@ async function getImage() {
     if (!fs.existsSync(baseDir + `${title ? title + slash : ""}`)){
         fs.mkdirSync(baseDir + `${title ? title + slash : ""}`, { recursive: true });
     }
-    for (let index = 0; index < pages.length; index++) {
+    let _end = pages.length < endAt ? pages.length : endAt;
+    if(endAt < pages.length) {
+        console.log(`Images will be not get from index ${endAt + 1} to ${pages.length}`)
+    }
+    for (let index = startAt - 1; index < _end; index++) {
         let retry = true;
         while(retry) {
             try {
@@ -126,7 +132,7 @@ async function getImage() {
                     }
                 }
                 retry = false;
-                if(index == pages.length - 1) {
+                if(index == _end - 1) {
                     if(superLazy) {
                         for(let image of images) {
                             await downloadImageLazy(image.src, baseDir + `${title ? title + slash : ""}${image.index.toString().padStart(pages.length.toString().length, '0')}.${image.src.split(".").pop(-1)}`);
