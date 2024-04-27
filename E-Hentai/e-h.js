@@ -3,6 +3,15 @@ const axios = require("axios");
 const jsdom = require("jsdom");
 const https = require("https");
 const readline = require("readline-sync");
+const { exit } = require("process");
+
+/* Set-Cookie value after logged in real browser, open your devTool before click the login button,
+    at api 'https://forums.e-hentai.org/index.php?act=Login&CODE=01'
+    and copy 2 values ipb_member_id, ipb_pass_hash at response header, Set-Cookie */
+const userNameKey = "ipb_member_id";
+const userName = "6254198";
+const passwordKey = "ipb_pass_hash";
+const password = "21d62d8fba90ef6cf24d53aadda8ef4f";
 
 let baseDir = "";
 let link = "";
@@ -12,6 +21,7 @@ let images = [];
 let title = "";
 let downloadNow = false;
 let superLazy = false;
+let fullImage = false;
 let slash = "\\";
 
 getData(0);
@@ -23,6 +33,7 @@ async function getData(page) {
             let _originLink = readline.question("E-Hentai Link: ");
             downloadNow = readline.keyInYN("Do you want to download while getting the link?");
             superLazy = readline.keyInYN("Do you want to lazy download?");
+            fullImage = readline.keyInYN("Do you want to download full size image?");
             if(!_baseDir.endsWith(slash)) _baseDir += slash;
             baseDir = _baseDir;
             link = _originLink;
@@ -84,6 +95,19 @@ async function getImage() {
                 let data = await axios.get(pages[index]);
                 let document = new jsdom.JSDOM(data.data).window.document;
                 let src = document.getElementById("img")?.src;
+                if(fullImage) {
+                    let fullA = document.querySelectorAll("a");
+                    let _ori = "";
+                    for(let a of fullA) {
+                        if(a.text?.includes("original") && a.href) {
+                            _ori = a.href;
+                            break;
+                        }
+                    }
+                    if(_ori) {
+                        src = _ori;
+                    }
+                }
                 if(src && !images.find(s => s.src == src)) {
                     console.log(`${index + 1}: ${src}`);
                     if(downloadNow) {
@@ -124,22 +148,25 @@ async function getImage() {
 }
 
 function downloadImage(url, filepath, retry = 1) {
-    const file = fs.createWriteStream(filepath);
-    https.get(url, function (response) {
-        response.pipe(file);
-
-        if(response.statusCode == 200) {
+    axios.get(url, {
+        headers: {
+            cookie: fullImage ? `${userNameKey}=${userName}; ${passwordKey}=${password};` : "",
+        },
+        responseType: "stream",
+    }).then((response) => {
+        if(fullImage && response.headers["content-type"]?.includes("text/html")) {
+            console.log("Please reset your userName and password in your code");
+            exit();
+        }
+        else {
+            const file = fs.createWriteStream(filepath);
+            response.data.pipe(file);
             file.on("finish", () => {
                 console.log(`Finish ${filepath}`)
                 file.close();
             });
         }
-        else {
-            // file.on("finish", () => {
-            //     file.destroy();
-            // });
-        }
-    }).on("error", (error) => {
+    }).catch((error) => {
         if(retry <= 60) {
             console.log(`Try connecting again #${retry} for ${url}...`);
             downloadImage(url, filepath, retry + 1);
@@ -151,24 +178,27 @@ function downloadImage(url, filepath, retry = 1) {
 }
 
 function downloadImageLazy(url, filepath, retry = 1) {
-    return new Promise(resolve => {
-        const file = fs.createWriteStream(filepath);
-        https.get(url, function (response) {
-            response.pipe(file);
-
-            if(response.statusCode == 200) {
+    return new Promise((resolve) => {
+        axios.get(url, {
+            headers: {
+                cookie: fullImage ? `${userNameKey}=${userName}; ${passwordKey}=${password};` : "",
+            },
+            responseType: "stream",
+        }).then((response) => {
+            if(fullImage && response.headers["content-type"]?.includes("text/html")) {
+                console.log("Please reset your userName and password in your code");
+                exit();
+            }
+            else {
+                const file = fs.createWriteStream(filepath);
+                response.data.pipe(file);
                 file.on("finish", () => {
                     console.log(`Finish ${filepath}`)
                     file.close();
                     resolve();
                 });
             }
-            else {
-                // file.on("finish", () => {
-                //     file.destroy();
-                // });
-            }
-        }).on("error", (error) => {
+        }).catch((error) => {
             if(retry <= 60) {
                 console.log(`Try connecting again #${retry} for ${url}...`);
                 downloadImage(url, filepath, retry + 1);
