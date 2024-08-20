@@ -3,12 +3,13 @@ const axios = require("axios");
 const jsdom = require("jsdom");
 const https = require("https");
 const readline = require("readline-sync");
+const path = require("path");
 
 let baseDir = "";
 let link = "";
 let pages = [];
 let videos = [];
-let slash = "\\";
+let slash = path.sep;
 let defaultTitle = "Rule34 Video ";
 let title = "";
 let domain = "";

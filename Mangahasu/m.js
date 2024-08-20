@@ -3,11 +3,12 @@ const axios = require("axios");
 const jsdom = require("jsdom");
 const https = require("https");
 const readline = require("readline-sync");
+const path = require("path");
 
 
 let baseDir = "";
 let link = "";
-let slash = "\\";
+let slash = path.sep;
 
 getData();
 
