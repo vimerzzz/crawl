@@ -3,6 +3,7 @@ const axios = require("axios");
 const jsdom = require("jsdom");
 const https = require("https");
 const readline = require("readline-sync");
+const path = require("path");
 
 let baseDir = "";
 let link = "";
@@ -10,9 +11,10 @@ let maxP = 0;
 let pages = [];
 let images = [];
 let title = "";
-let downloadNow = false;
+// let downloadNow = false;
+let downloadNow = true;
 let superLazy = false;
-let slash = "\\";
+let slash = path.sep;
 
 getData(0);
 
@@ -21,8 +23,8 @@ async function getData(page) {
         if(!page) {
             let _baseDir = readline.question("Base Directory: ");
             let _originLink = readline.question("E-Hentai Link: ");
-            downloadNow = readline.keyInYN("Do you want to download while getting the link?");
-            superLazy = readline.keyInYN("Do you want to lazy download?");
+            // downloadNow = readline.keyInYN("Do you want to download while getting the link?");
+            // superLazy = readline.keyInYN("Do you want to lazy download?");
             if(!_baseDir.endsWith(slash)) _baseDir += slash;
             baseDir = _baseDir;
             link = _originLink;
@@ -40,7 +42,7 @@ async function getData(page) {
         console.log(`Getting links from ${_l}`);
         let data = await axios.get(_l);
         let document = new jsdom.JSDOM(data.data).window.document;
-        title = document.title.replace(/\\|\/|\:|\*|\?|\"|\<|\>|\||\~/g, "").substring(0, 200);
+        title = document.title.replace(/\\|\/|\:|\*|\?|\"|\<|\>|\||\~/g, "").substring(0, 150);
         let as = document.querySelectorAll(".gdtm a");
         if(!page) {
             let ts = document.querySelectorAll("table.ptb a");
