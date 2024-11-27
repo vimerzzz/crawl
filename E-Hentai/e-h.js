@@ -15,6 +15,7 @@ let title = "";
 let downloadNow = true;
 let superLazy = false;
 let slash = path.sep;
+let rootUrl = "https://e-hentai.org/";
 
 getData(0);
 
@@ -40,10 +41,17 @@ async function getData(page) {
         await new Promise((resolve) => setTimeout(resolve, 150));
         let _l = link + (page ? `?p=${page}` : "");
         console.log(`Getting links from ${_l}`);
-        let data = await axios.get(_l);
-        let document = new jsdom.JSDOM(data.data).window.document;
+        const options = {
+            runScripts: "dangerously",
+            pretendToBeVisual: true,
+            virtualConsole: new jsdom.VirtualConsole(),
+            cookieJar: new jsdom.CookieJar(),
+        };
+        options.cookieJar.setCookie("nw=1", rootUrl);
+
+        let document = (await jsdom.JSDOM.fromURL(_l, options)).window.document;
         title = document.title.replace(/\\|\/|\:|\*|\?|\"|\<|\>|\||\~/g, "").substring(0, 150);
-        let as = document.querySelectorAll(".gdtm a");
+        let as = document.querySelectorAll("#gdt a");
         if(!page) {
             let ts = document.querySelectorAll("table.ptb a");
             let existedHref = [];
